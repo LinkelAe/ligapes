@@ -42,15 +42,6 @@ with st.form("mvp_form", clear_on_submit=True):
             st.session_state["data"] = data
             st.success(f"¡MVP registrado para {jugador} de {club} en la jornada {jornada}!")
 
-# Mostrar tabla con los registros
-st.header("Historial de MVPs")
-if not data.empty:
-    st.dataframe(data.style.set_table_styles([
-        {'selector': 'th', 'props': 'text-align: center;'},
-        {'selector': 'td', 'props': 'text-align: left; white-space: nowrap; max-width: 300px;'}
-    ]).set_properties(**{'text-align': 'center', 'max-width': '300px'}))
-else:
-    st.info("No hay registros de MVPs aún.")
 
 
 # Análisis de MVPs por jugador
@@ -61,6 +52,17 @@ if not data.empty:
     st.dataframe(conteo_jugadores.style.set_properties(**{'text-align': 'center', 'max-width': '300px'}))
 else:
     st.info("No hay datos para mostrar estadísticas por jugadores.")
+
+
+# Mostrar tabla con los registros
+st.header("Historial de MVPs")
+if not data.empty:
+    st.dataframe(data.style.set_table_styles([
+        {'selector': 'th', 'props': 'text-align: center;'},
+        {'selector': 'td', 'props': 'text-align: left; white-space: nowrap; max-width: 300px;'}
+    ]).set_properties(**{'text-align': 'center', 'max-width': '300px'}))
+else:
+    st.info("No hay registros de MVPs aún.")
 
 
 # Análisis de MVPs por club
