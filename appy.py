@@ -1,15 +1,41 @@
 import streamlit as st
 import pandas as pd
+import sqlite3
 
-# Título de la página
-st.title("Registro de Jugadores MVP")
+# Conexión a la base de datos SQLite
+DB_FILE = "mvp_data.db"
 
-# Inicializar o cargar datos
-@st.cache_data
-def load_data():
-    return pd.DataFrame(columns=["Jugador", "Jornada", "Club"])
+def init_db():
+    """Inicializar la base de datos y la tabla si no existen."""
+    conn = sqlite3.connect(DB_FILE)
+    c = conn.cursor()
+    c.execute("""
+        CREATE TABLE IF NOT EXISTS mvp (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            jugador TEXT,
+            jornada INTEGER,
+            club TEXT
+        )
+    """)
+    conn.commit()
+    return conn
 
-data = st.session_state.get("data", load_data())
+# Guardar un registro en la base de datos
+def save_to_db(conn, jugador, jornada, club):
+    c = conn.cursor()
+    c.execute("INSERT INTO mvp (jugador, jornada, club) VALUES (?, ?, ?)", (jugador, jornada, club))
+    conn.commit()
+
+# Cargar datos de la base de datos
+def load_from_db(conn):
+    c = conn.cursor()
+    c.execute("SELECT jugador, jornada, club FROM mvp")
+    rows = c.fetchall()
+    return pd.DataFrame(rows, columns=["Jugador", "Jornada", "Club"])
+
+# Inicializar base de datos
+conn = init_db()
+data = load_from_db(conn)
 
 # Lista de clubes
 clubes = [
@@ -25,6 +51,9 @@ clubes = [
     "Arsenal de Sarandí",
 ]
 
+# Título de la página
+st.title("Registro de Jugadores MVP")
+
 # Formulario para agregar MVPs
 st.header("Añadir un MVP")
 with st.form("mvp_form", clear_on_submit=True):
@@ -37,10 +66,16 @@ with st.form("mvp_form", clear_on_submit=True):
         if not jugador:
             st.warning("Por favor, ingresa el nombre del jugador.")
         else:
-            nuevo_registro = {"Jugador": jugador, "Jornada": int(jornada), "Club": club}
-            data = pd.concat([data, pd.DataFrame([nuevo_registro])], ignore_index=True)
-            st.session_state["data"] = data
+            save_to_db(conn, jugador, int(jornada), club)
+            data = load_from_db(conn)  # Recargar los datos desde la base de datos
             st.success(f"¡MVP registrado para {jugador} de {club} en la jornada {jornada}!")
+
+# Mostrar tabla con los registros
+st.header("Historial de MVPs")
+if not data.empty:
+    st.dataframe(data, use_container_width=True)
+else:
+    st.info("No hay registros de MVPs aún.")
 
 # Análisis de MVPs por jugador
 st.header("Total de MVPs por Jugador")
@@ -51,7 +86,6 @@ if not data.empty:
         .reset_index(name="MVPs Totales")
         .sort_values(by="MVPs Totales", ascending=False)
     )
-    # Mostrar la tabla usando st.table para evitar los índices
     st.table(conteo_jugadores)
 else:
     st.info("No hay datos para mostrar estadísticas por jugadores.")
@@ -62,13 +96,6 @@ if not data.empty:
     conteo_clubes = data["Club"].value_counts().reset_index()
     conteo_clubes.columns = ["Club", "MVPs Totales"]
     st.bar_chart(conteo_clubes.set_index("Club"))
-    st.dataframe(conteo_clubes.style.set_properties(**{'text-align': 'center'}), use_container_width=True)
+    st.dataframe(conteo_clubes, use_container_width=True)
 else:
     st.info("No hay datos para mostrar estadísticas por clubes.")
-
-# Mostrar tabla con los registros
-st.header("Historial de MVPs")
-if not data.empty:
-    st.dataframe(data, use_container_width=True)  # Permitir que la tabla use todo el ancho del contenedor
-else:
-    st.info("No hay registros de MVPs aún.")
