@@ -7,7 +7,7 @@ st.title("Registro de Jugadores MVP")
 # Inicializar o cargar datos
 @st.cache_data
 def load_data():
-    return pd.DataFrame(columns=["Jugador", "Fecha", "Jornada"])
+    return pd.DataFrame(columns=["Jugador", "Jornada"])
 
 data = st.session_state.get("data", load_data())
 
@@ -15,7 +15,6 @@ data = st.session_state.get("data", load_data())
 st.header("Añadir un MVP")
 with st.form("mvp_form", clear_on_submit=True):
     jugador = st.text_input("Nombre del jugador", placeholder="Ejemplo: Lionel Messi")
-    fecha = st.date_input("Fecha del logro")
     jornada = st.number_input("Número de la jornada", min_value=1, step=1)
     submit = st.form_submit_button("Registrar MVP")
 
@@ -23,7 +22,7 @@ with st.form("mvp_form", clear_on_submit=True):
         if not jugador:
             st.warning("Por favor, ingresa el nombre del jugador.")
         else:
-            nuevo_registro = {"Jugador": jugador, "Fecha": fecha, "Jornada": int(jornada)}
+            nuevo_registro = {"Jugador": jugador, "Jornada": int(jornada)}
             data = pd.concat([data, pd.DataFrame([nuevo_registro])], ignore_index=True)
             st.session_state["data"] = data
             st.success(f"¡MVP registrado para {jugador} en la jornada {jornada}!")
