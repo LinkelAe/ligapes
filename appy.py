@@ -68,7 +68,7 @@ if not data.empty:
         .reset_index(name="MVPs Totales")
         .sort_values(by="MVPs Totales", ascending=False)
     )
-    # Convertir el DataFrame a un formato sin índices
-    st.dataframe(conteo_jugadores.reset_index(drop=True), use_container_width=True)
+    # Mostrar la tabla usando st.table para evitar los índices
+    st.table(conteo_jugadores)
 else:
     st.info("No hay datos para mostrar estadísticas por jugadores.")
