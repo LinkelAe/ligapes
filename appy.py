@@ -1,15 +1,23 @@
 import streamlit as st
 import pandas as pd
+import os
 
-# Título de la página
-st.title("Registro de Jugadores MVP")
+# Ruta del archivo CSV
+CSV_FILE = "mvp_data.csv"
 
-# Inicializar o cargar datos
-@st.cache_data
+# Función para cargar datos desde el archivo CSV
 def load_data():
-    return pd.DataFrame(columns=["Jugador", "Jornada", "Club"])
+    if os.path.exists(CSV_FILE):
+        return pd.read_csv(CSV_FILE)
+    else:
+        return pd.DataFrame(columns=["Jugador", "Jornada", "Club"])
 
-data = st.session_state.get("data", load_data())
+# Guardar datos en el archivo CSV
+def save_data(data):
+    data.to_csv(CSV_FILE, index=False)
+
+# Cargar datos al iniciar
+data = load_data()
 
 # Lista de clubes
 clubes = [
@@ -25,6 +33,9 @@ clubes = [
     "Arsenal de Sarandí",
 ]
 
+# Título de la página
+st.title("Registro de Jugadores MVP")
+
 # Formulario para agregar MVPs
 st.header("Añadir un MVP")
 with st.form("mvp_form", clear_on_submit=True):
@@ -39,38 +50,12 @@ with st.form("mvp_form", clear_on_submit=True):
         else:
             nuevo_registro = {"Jugador": jugador, "Jornada": int(jornada), "Club": club}
             data = pd.concat([data, pd.DataFrame([nuevo_registro])], ignore_index=True)
-            st.session_state["data"] = data
+            save_data(data)  # Guardar datos en el CSV
             st.success(f"¡MVP registrado para {jugador} de {club} en la jornada {jornada}!")
-
-# Análisis de MVPs por jugador
-st.header("Total de MVPs por Jugador")
-if not data.empty:
-    conteo_jugadores = (
-        data.groupby(["Jugador", "Club"])
-        .size()
-        .reset_index(name="MVPs Totales")
-        .sort_values(by="MVPs Totales", ascending=False)
-    )
-    # Mostrar la tabla usando st.table para evitar los índices
-    st.table(conteo_jugadores)
-else:
-    st.info("No hay datos para mostrar estadísticas por jugadores.")
-
-# Análisis de MVPs por club
-st.header("Estadísticas de MVPs por Club")
-if not data.empty:
-    conteo_clubes = data["Club"].value_counts().reset_index()
-    conteo_clubes.columns = ["Club", "MVPs Totales"]
-    st.bar_chart(conteo_clubes.set_index("Club"))
-    st.dataframe(conteo_clubes.style.set_properties(**{'text-align': 'center'}), use_container_width=True)
-else:
-    st.info("No hay datos para mostrar estadísticas por clubes.")
 
 # Mostrar tabla con los registros
 st.header("Historial de MVPs")
 if not data.empty:
-    st.dataframe(data, use_container_width=True)  # Permitir que la tabla use todo el ancho del contenedor
+    st.dataframe(data, use_container_width=True)
 else:
     st.info("No hay registros de MVPs aún.")
-
-
