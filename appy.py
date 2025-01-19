@@ -52,6 +52,15 @@ if not data.empty:
 else:
     st.info("No hay registros de MVPs aún.")
 
+# Análisis de MVPs por jugador
+st.header("Total de MVPs por Jugador")
+if not data.empty:
+    conteo_jugadores = data["Jugador"].value_counts().reset_index()
+    conteo_jugadores.columns = ["Jugador", "MVPs Totales"]
+    st.dataframe(conteo_jugadores.style.set_properties(**{'text-align': 'center'}))
+else:
+    st.info("No hay datos para mostrar estadísticas por jugadores.")
+
 # Análisis de MVPs por club
 st.header("Estadísticas de MVPs por Club")
 if not data.empty:
@@ -62,11 +71,3 @@ if not data.empty:
 else:
     st.info("No hay datos para mostrar estadísticas por clubes.")
 
-# Análisis de MVPs por jugador
-st.header("Total de MVPs por Jugador")
-if not data.empty:
-    conteo_jugadores = data["Jugador"].value_counts().reset_index()
-    conteo_jugadores.columns = ["Jugador", "MVPs Totales"]
-    st.dataframe(conteo_jugadores.style.set_properties(**{'text-align': 'center'}))
-else:
-    st.info("No hay datos para mostrar estadísticas por jugadores.")
