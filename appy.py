@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
 import sqlite3
+import io
 
 # Conexión a la base de datos SQLite
 DB_FILE = "mvp_data.db"
@@ -65,6 +66,36 @@ if st.button("Limpiar todos los MVPs"):
     clear_db(conn)
     data = load_from_db(conn)  # Recargar datos después de limpiar
     st.warning("¡Todos los datos han sido eliminados!")
+
+# Botón para descargar los datos como CSV
+st.header("Descargar datos de MVPs")
+if not data.empty:
+    csv_buffer = io.StringIO()
+    data.to_csv(csv_buffer, index=False)
+    st.download_button(
+        label="Descargar CSV",
+        data=csv_buffer.getvalue(),
+        file_name="mvp_data.csv",
+        mime="text/csv"
+    )
+else:
+    st.info("No hay datos para descargar.")
+
+# Cargar datos desde un archivo CSV
+st.header("Subir datos de MVPs desde un archivo CSV")
+uploaded_file = st.file_uploader("Selecciona un archivo CSV", type=["csv"])
+if uploaded_file:
+    try:
+        uploaded_data = pd.read_csv(uploaded_file)
+        if all(col in uploaded_data.columns for col in ["Jugador", "Jornada", "Club"]):
+            for _, row in uploaded_data.iterrows():
+                save_to_db(conn, row["Jugador"], row["Jornada"], row["Club"])
+            st.success("Datos subidos y agregados correctamente.")
+            data = load_from_db(conn)  # Recargar los datos
+        else:
+            st.error("El archivo CSV debe contener las columnas: Jugador, Jornada, Club.")
+    except Exception as e:
+        st.error(f"Error al procesar el archivo: {e}")
 
 # Formulario para agregar MVPs
 st.header("Añadir un MVP")
