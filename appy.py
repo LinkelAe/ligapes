@@ -42,12 +42,17 @@ with st.form("mvp_form", clear_on_submit=True):
             st.session_state["data"] = data
             st.success(f"¡MVP registrado para {jugador} de {club} en la jornada {jornada}!")
 
-# Mostrar tabla con los registros
-st.header("Historial de MVPs")
+
+
+# Análisis de MVPs por jugador
+st.header("Total de MVPs por Jugador")
 if not data.empty:
-    st.dataframe(data, use_container_width=True)  # Permitir que la tabla use todo el ancho del contenedor
+    conteo_jugadores = data["Jugador"].value_counts().reset_index()
+    conteo_jugadores.columns = ["Jugador", "MVPs Totales"]
+    st.dataframe(conteo_jugadores.style.set_properties(**{'text-align': 'center'}), use_container_width=True)
 else:
-    st.info("No hay registros de MVPs aún.")
+    st.info("No hay datos para mostrar estadísticas por jugadores.")
+    
 
 # Análisis de MVPs por club
 st.header("Estadísticas de MVPs por Club")
@@ -59,11 +64,10 @@ if not data.empty:
 else:
     st.info("No hay datos para mostrar estadísticas por clubes.")
 
-# Análisis de MVPs por jugador
-st.header("Total de MVPs por Jugador")
+
+# Mostrar tabla con los registros
+st.header("Historial de MVPs")
 if not data.empty:
-    conteo_jugadores = data["Jugador"].value_counts().reset_index()
-    conteo_jugadores.columns = ["Jugador", "MVPs Totales"]
-    st.dataframe(conteo_jugadores.style.set_properties(**{'text-align': 'center'}), use_container_width=True)
+    st.dataframe(data, use_container_width=True)  # Permitir que la tabla use todo el ancho del contenedor
 else:
-    st.info("No hay datos para mostrar estadísticas por jugadores.")
+    st.info("No hay registros de MVPs aún.")
