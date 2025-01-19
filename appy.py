@@ -45,18 +45,19 @@ with st.form("mvp_form", clear_on_submit=True):
 # Mostrar tabla con los registros
 st.header("Historial de MVPs")
 if not data.empty:
-    st.dataframe(data, use_container_width=True)  # Ajusta la tabla al ancho de la página
+    st.dataframe(data.style.set_table_styles([
+        {'selector': 'th', 'props': 'text-align: center;'},
+        {'selector': 'td', 'props': 'text-align: left; white-space: nowrap;'}
+    ]))
 else:
     st.info("No hay registros de MVPs aún.")
 
 # Análisis de MVPs por club
 st.header("Estadísticas de MVPs por Club")
 if not data.empty:
-    conteo_clubes = data["Club"].value_counts().reset_index()
-    conteo_clubes.columns = ["Club", "MVPs Totales"]
-    
-    # Mostrar gráfica y tabla de clubes
-    st.bar_chart(conteo_clubes.set_index("Club"))
-    st.dataframe(conteo_clubes, use_container_width=True)
+    conteo = data["Club"].value_counts().reset_index()
+    conteo.columns = ["Club", "MVPs Totales"]
+    st.bar_chart(conteo.set_index("Club"))
+    st.dataframe(conteo.style.set_properties(**{'text-align': 'center'}))
 else:
     st.info("No hay datos para mostrar estadísticas.")
