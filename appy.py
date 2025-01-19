@@ -33,6 +33,12 @@ def load_from_db(conn):
     rows = c.fetchall()
     return pd.DataFrame(rows, columns=["Jugador", "Jornada", "Club"])
 
+# Limpiar la base de datos
+def clear_db(conn):
+    c = conn.cursor()
+    c.execute("DELETE FROM mvp")
+    conn.commit()
+
 # Inicializar base de datos
 conn = init_db()
 data = load_from_db(conn)
@@ -54,6 +60,12 @@ clubes = [
 # Título de la página
 st.title("Registro de Jugadores MVP")
 
+# Botón para limpiar la base de datos
+if st.button("Limpiar todos los MVPs"):
+    clear_db(conn)
+    data = load_from_db(conn)  # Recargar datos después de limpiar
+    st.warning("¡Todos los datos han sido eliminados!")
+
 # Formulario para agregar MVPs
 st.header("Añadir un MVP")
 with st.form("mvp_form", clear_on_submit=True):
@@ -69,6 +81,14 @@ with st.form("mvp_form", clear_on_submit=True):
             save_to_db(conn, jugador, int(jornada), club)
             data = load_from_db(conn)  # Recargar los datos desde la base de datos
             st.success(f"¡MVP registrado para {jugador} de {club} en la jornada {jornada}!")
+
+# Mostrar tabla con los registros
+st.header("Historial de MVPs")
+if not data.empty:
+    st.dataframe(data, use_container_width=True)
+else:
+    st.info("No hay registros de MVPs aún.")
+
 # Análisis de MVPs por jugador
 st.header("Total de MVPs por Jugador")
 if not data.empty:
@@ -82,7 +102,6 @@ if not data.empty:
 else:
     st.info("No hay datos para mostrar estadísticas por jugadores.")
 
-
 # Análisis de MVPs por club
 st.header("Estadísticas de MVPs por Club")
 if not data.empty:
@@ -92,11 +111,3 @@ if not data.empty:
     st.dataframe(conteo_clubes, use_container_width=True)
 else:
     st.info("No hay datos para mostrar estadísticas por clubes.")
-
-# Mostrar tabla con los registros
-st.header("Historial de MVPs")
-if not data.empty:
-    st.dataframe(data, use_container_width=True)
-else:
-    st.info("No hay registros de MVPs aún.")
-
