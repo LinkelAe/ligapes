@@ -47,9 +47,13 @@ with st.form("mvp_form", clear_on_submit=True):
 # Análisis de MVPs por jugador
 st.header("Total de MVPs por Jugador")
 if not data.empty:
-    conteo_jugadores = data["Jugador"].value_counts().reset_index()
-    conteo_jugadores.columns = ["Jugador", "MVPs Totales"]
-    st.dataframe(conteo_jugadores.style.set_properties(**{'text-align': 'center'}), use_container_width=True)
+    conteo_jugadores = (
+        data.groupby(["Jugador", "Club"])
+        .size()
+        .reset_index(name="MVPs Totales")
+        .sort_values(by="MVPs Totales", ascending=False)
+    )
+    st.dataframe(conteo_jugadores, use_container_width=True)
 else:
     st.info("No hay datos para mostrar estadísticas por jugadores.")
     
