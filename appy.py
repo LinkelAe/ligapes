@@ -53,10 +53,10 @@ if not data.empty:
         .reset_index(name="MVPs Totales")
         .sort_values(by="MVPs Totales", ascending=False)
     )
-    st.dataframe(conteo_jugadores, use_container_width=True)
+    # Convertir el DataFrame a un formato sin índices
+    st.dataframe(conteo_jugadores.reset_index(drop=True), use_container_width=True)
 else:
     st.info("No hay datos para mostrar estadísticas por jugadores.")
-    
 
 # Análisis de MVPs por club
 st.header("Estadísticas de MVPs por Club")
