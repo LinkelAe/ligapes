@@ -42,20 +42,29 @@ with st.form("mvp_form", clear_on_submit=True):
             st.session_state["data"] = data
             st.success(f"¡MVP registrado para {jugador} de {club} en la jornada {jornada}!")
 
-# Análisis de MVPs por jugador
-st.header("Total de MVPs por Jugador")
-if not data.empty:
-    conteo_jugadores = (
-        data.groupby(["Jugador", "Club"])
-        .size()
-        .reset_index(name="MVPs Totales")
-        .sort_values(by="MVPs Totales", ascending=False)
-    )
-    # Mostrar la tabla usando st.table para evitar los índices
-    st.table(conteo_jugadores)
-else:
-    st.info("No hay datos para mostrar estadísticas por jugadores.")
 
+
+
+# Funcionalidad de edición
+st.header("Editar MVP")
+if not data.empty:
+    seleccion = st.selectbox("Selecciona el jugador a editar:", data["Jugador"].unique())
+    jugador_editar = data[data["Jugador"] == seleccion].iloc[0]
+
+    with st.form("edit_form"):
+        nuevo_jugador = st.text_input("Nombre del jugador", value=jugador_editar["Jugador"])
+        nueva_jornada = st.number_input("Número de la jornada", min_value=1, step=1, value=jugador_editar["Jornada"])
+        nuevo_club = st.selectbox("Selecciona el club del jugador", clubes, index=clubes.index(jugador_editar["Club"]))
+        editar = st.form_submit_button("Guardar cambios")
+
+        if editar:
+            # Actualizar el DataFrame
+            index = data[data["Jugador"] == seleccion].index[0]
+            data.at[index, "Jugador"] = nuevo_jugador
+            data.at[index, "Jornada"] = nueva_jornada
+            data.at[index, "Club"] = nuevo_club
+            st.session_state["data"] = data
+            st.success(f"Se actualizaron los datos de {seleccion} a {nuevo_jugador}.")
 
 # Análisis de MVPs por club
 st.header("Estadísticas de MVPs por Club")
@@ -71,6 +80,6 @@ else:
 # Mostrar tabla con los registros
 st.header("Historial de MVPs")
 if not data.empty:
-    st.dataframe(data, use_container_width=True)  # Permitir que la tabla use todo el ancho del contenedor
+    st.dataframe(data, use_container_width=True)
 else:
     st.info("No hay registros de MVPs aún.")
