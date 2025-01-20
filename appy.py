@@ -27,29 +27,13 @@ def save_to_db(conn, jugador, jornada, club):
     c.execute("INSERT INTO mvp (jugador, jornada, club) VALUES (?, ?, ?)", (jugador, jornada, club))
     conn.commit()
 
-# Cargar datos desde un archivo CSV
-st.header("Subir datos de MVPs desde un archivo CSV")
-uploaded_file = st.file_uploader("Selecciona un archivo CSV", type=["csv"])
-if uploaded_file:
-    try:
-        # Intentar leer el archivo con codificación UTF-8
-        try:
-            uploaded_data = pd.read_csv(uploaded_file)
-        except UnicodeDecodeError:
-            # Si falla, intentar con ISO-8859-1
-            uploaded_data = pd.read_csv(uploaded_file, encoding="ISO-8859-1")
-        
-        # Validar las columnas
-        if all(col in uploaded_data.columns for col in ["Jugador", "Jornada", "Club"]):
-            for _, row in uploaded_data.iterrows():
-                save_to_db(conn, row["Jugador"], row["Jornada"], row["Club"])
-            st.success("Datos subidos y agregados correctamente.")
-            data = load_from_db(conn)  # Recargar los datos
-        else:
-            st.error("El archivo CSV debe contener las columnas: Jugador, Jornada, Club.")
-    except Exception as e:
-        st.error(f"Error al procesar el archivo: {e}")
-
+# Cargar datos de la base de datos
+def load_from_db(conn):
+    c = conn.cursor()
+    c.execute("SELECT jugador, jornada, club FROM mvp")
+    rows = c.fetchall()
+    return pd.DataFrame(rows, columns=["Jugador", "Jornada", "Club"])
+    
 # Limpiar la base de datos
 def clear_db(conn):
     c = conn.cursor()
